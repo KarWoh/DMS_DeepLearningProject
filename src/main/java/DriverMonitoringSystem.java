@@ -1,6 +1,6 @@
-package ai.certifai.solution.classification;
+//package ai.certifai.solution.classification;
 
-import ai.certifai.Helper;
+//import ai.certifai.Helper;
 import org.apache.commons.io.FileUtils;
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
@@ -26,7 +26,7 @@ import java.util.Random;
 
 public class DriverMonitoringSystem {
     // Define Logger to display specific comment
-    private static final Logger Log = org.slf4j.LoggerFactory.getLogger(DogBreedDataSetIterator.class);
+    private static final Logger Log = org.slf4j.LoggerFactory.getLogger(DriverMonitoringSystem.class);
 
     // Get the PATH and DOWNLOAD LINK for data and random seed for consistent data random generator
     private static String dataDir;

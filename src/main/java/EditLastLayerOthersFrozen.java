@@ -15,9 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package ai.certifai.solution.classification.transferlearning;
-
-import ai.certifai.solution.classification.DriverMonitoringSystem;
+//import DriverMonitoringSystem;
 import org.datavec.image.transform.*;
 import org.deeplearning4j.api.storage.StatsStorage;
 import org.deeplearning4j.nn.conf.layers.OutputLayer;
