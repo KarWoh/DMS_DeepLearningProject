@@ -42,9 +42,8 @@ public class DriverMonitoringSystem {
     private static final int height = 224;
     private static final int width = 224;
     private static final int channels = 3;
-    private static final int numClasses = 3;
-    private static int numEpochs = 10;
-    private static int batchSize = 128;
+    private static final int numClasses = 2;
+    private static int batchSize = 32;
 
     // Input split for train_set and test_set
     private static InputSplit trainSet, testSet;
@@ -103,12 +102,12 @@ public class DriverMonitoringSystem {
     // Training setup with images from data source
     public static void setup(int batchSizeArg, int trainPerc) throws IOException
     {
-        // Data path System and Helper
-        dataDir = Paths.get(
-                System.getProperty("user.home"),
-                Helper.getPropValues("dl4j_home.data")
-        ).toString();
-        // dataDir = "C:\\Users\\User\\Desktop\\AppliedDeepLearningBootcamp\\TrainingLabs\\1stLesson\\TrainingLabs-main\\dl4j-cv-labs\\src\\main\\resources\\dog-breed-identification";
+//         Data path System and Helper
+            dataDir = Paths.get(
+            System.getProperty("user.home"),
+            Helper.getPropValues("dl4j_home.data")
+    ).toString();
+//         dataDir = "C:\\Users\\User\\.deeplearning4j\\data\\";
 
         // Download link path Helper
         downloadLink = Helper.getPropValues("dataset.drivermonitoring.url");
@@ -153,13 +152,13 @@ public class DriverMonitoringSystem {
 
         // Downloaded file imcomplete due to absolute path checksum not correct
         if(!Helper.getCheckSum(zipFile.getAbsolutePath())
-                .equalsIgnoreCase(Helper.getPropValues("dataset.drivermonitoring.hash"))){
+                .equalsIgnoreCase(Helper.getPropValues("dataset.drivermonitoringsystem.hash"))){
             Log.info("Downloaded file is incomplete");
             System.exit(0);
         }
 
         // Unzip download file
-        Log.info("Unzipping "+zipFile.getAbsolutePath());
+//        Log.info("Unzipping "+zipFile.getAbsolutePath());
         ArchiveUtils.unzipFileTo(zipFile.getAbsolutePath(), dataZipPath);
     }
 }
