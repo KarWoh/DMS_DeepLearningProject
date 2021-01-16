@@ -43,6 +43,7 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.stats.StatsListener;
 import org.deeplearning4j.ui.storage.FileStatsStorage;
+import org.deeplearning4j.ui.storage.InMemoryStatsStorage;
 import org.deeplearning4j.util.ModelSerializer;
 import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.TinyYOLO;
@@ -59,6 +60,8 @@ import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.primitives.Pair;
+import org.nd4j.linalg.schedule.ScheduleType;
+import org.nd4j.linalg.schedule.StepSchedule;
 import org.opencv.dnn.DetectionModel;
 import org.slf4j.Logger;
 
@@ -93,11 +96,12 @@ public class EditLastLayerOthersFrozen {
 
     private static int width = 224;
     private static int height = 224;
+    private static int numClasses = 2;
     private static int gridWidth = 13;
     private static int gridHeight =13;
-    private static int epochs = 1;
+    private static int epochs = 5;
     private static int batchSize = 32;
-    private static int numClasses = 2;
+    private static double learningRate = 0.001;
     private static ComputationGraph model;
 //    private static File modelFilename = new File(System.getProperty("user.home"), ".deeplearning4j/generated-models/DMS.zip");
 
@@ -142,7 +146,8 @@ public class EditLastLayerOthersFrozen {
         // Override the setting for all layers that are not "frozen".
         FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
                 .seed( seed )
-                .updater( new Adam( 0.001, 0.9, 0.98, 10 - 7 ) )
+                .updater( new Adam( new StepSchedule( ScheduleType.EPOCH, learningRate, 0.5, 5 ) ) )
+//                .updater( new Adam( 0.001, 0.9, 0.98, 10 - 7 ) )
                 .build();
 
         //Construct a new model with the intended architecture and print summary
@@ -160,7 +165,9 @@ public class EditLastLayerOthersFrozen {
         log.info( vgg16Transfer.summary() );
 
         UIServer uiServer = UIServer.getInstance();
-        StatsStorage statsStorage = new FileStatsStorage( new File( System.getProperty( "java.io.tmpdir" ), "ui-stats.dl4j" ) );
+//        StatsStorage statsStorage = new FileStatsStorage( new File( System.getProperty( "java.io.tmpdir" ), "ui-stats.dl4j" ) );
+        StatsStorage statsStorage = new InMemoryStatsStorage();
+//        server.attach( storage );
         uiServer.attach( statsStorage );
         vgg16Transfer.setListeners(
                 new StatsListener( statsStorage ),
@@ -185,7 +192,7 @@ public class EditLastLayerOthersFrozen {
         ).toString();
 
 
-        File locationToSaveModel = new File( Paths.get( modelExportDir, "DMS.zip" ).toString() );
+        File locationToSaveModel = new File( Paths.get( modelExportDir, "DMS_VGG16.zip" ).toString() );
         if (!locationToSaveModel.exists()) {
             locationToSaveModel.getParentFile().mkdirs();
         }
@@ -193,82 +200,82 @@ public class EditLastLayerOthersFrozen {
         boolean saveUpdater = false;
         ModelSerializer.writeModel( vgg16Transfer, locationToSaveModel, saveUpdater );
         log.info( "Model saved" );
-//
-//
-        if (!cameraPos.equals("front") && !cameraPos.equals("back")) {
-            throw new Exception("Unknown argument for camera position. Choose between front and back");
-        }
-
-        FrameGrabber grabber = FrameGrabber.createDefault(cameraNum);
-        OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
-        grabber.start();
-        String winName = "Driver Drowsiness Detection";
-        CanvasFrame canvas = new CanvasFrame(winName);
-        int w = grabber.getImageWidth();
-        int h = grabber.getImageHeight();
-        canvas.setCanvasSize(w, h);
-
-//        ComputationGraph initializedModel = (ComputationGraph) model.initPretrained();
-        NativeImageLoader loader = new NativeImageLoader(width, height, 3, new ColorConversionTransform(COLOR_BGR2RGB));
-        ImagePreProcessingScaler scaler = new ImagePreProcessingScaler(0, 1);
-        VOCLabels labels = new VOCLabels();
-
-        while (true) {
-            Frame frame = grabber.grab();
-
-            //if a thread is null, create new thread
-            if (thread == null) {
-                thread = new Thread(() ->
-                {
-                    while (frame != null) {
-                        try {
-                            Mat rawImage = new Mat();
-                            //Flip the camera if opening front camera
-                            if (cameraPos.equals("front")) {
-                                Mat inputImage = converter.convert(frame);
-                                flip(inputImage, rawImage, 1);
-                            } else {
-                                rawImage = converter.convert(frame);
-                            }
-                            Mat resizeImage = new Mat();
-                            resize(rawImage, resizeImage, new Size(width, height));
-                            INDArray inputImage = loader.asMatrix(resizeImage);
-                            scaler.transform(inputImage);
-//                              outputs = initializedModel.outputSingle(inputImage);
-
-//                            vgg16Transfer.output(inputImage);
-                            model.output(inputImage);
-
-//                            org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) vgg16Transfer.getOutputLayer( 0 );
-//                            List<DetectedObject> objs = yout.getPredictedObjects( outputs, detectionThreshold );
-//                            YoloUtils.nms( objs, 0.4 );
-
-//                            for (INDArray obj : model.output(inputImage)) {
-//                                double[] xy1;
-//                                xy1 = obj.toDoubleVector();
-//                                double[] xy2;
-//                                xy2 = obj.toDoubleVector();
-//                                String label = labels.getLabel(obj.getInt());
-//                                int x1 = (int) Math.round(w * xy1[0] / gridWidth);
-//                                int y1 = (int) Math.round(h * xy1[1] / gridHeight);
-//                                int x2 = (int) Math.round(w * xy2[0] / gridWidth);
-//                                int y2 = (int) Math.round(h * xy2[1] / gridHeight);
-//                                rectangle(rawImage, new Point(x1, y1), new Point(x2, y2), Scalar.RED, 2, 0, 0);
-//                                putText(rawImage, label, new Point(x1 + 2, y2 - 2), FONT_HERSHEY_DUPLEX, 1, Scalar.GREEN);
-//                            }
-                            canvas.showImage(converter.convert(rawImage));
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                });
-                thread.start();
-            }
-            KeyEvent t = canvas.waitKey(33);
-            if ((t != null) && (t.getKeyCode() == KeyEvent.VK_Q)) {
-                break;
-            }
-        }
-        canvas.dispose();
     }
+//
+//        if (!cameraPos.equals("front") && !cameraPos.equals("back")) {
+//            throw new Exception("Unknown argument for camera position. Choose between front and back");
+//        }
+//
+//        FrameGrabber grabber = FrameGrabber.createDefault(cameraNum);
+//        OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+//        grabber.start();
+//        String winName = "Driver Drowsiness Detection";
+//        CanvasFrame canvas = new CanvasFrame(winName);
+//        int w = grabber.getImageWidth();
+//        int h = grabber.getImageHeight();
+//        canvas.setCanvasSize(w, h);
+//
+////        ComputationGraph initializedModel = (ComputationGraph) model.initPretrained();
+//        NativeImageLoader loader = new NativeImageLoader(width, height, 3, new ColorConversionTransform(COLOR_BGR2RGB));
+//        ImagePreProcessingScaler scaler = new ImagePreProcessingScaler(0, 1);
+//        VOCLabels labels = new VOCLabels();
+//
+//        while (true) {
+//            Frame frame = grabber.grab();
+//
+//            //if a thread is null, create new thread
+//            if (thread == null) {
+//                thread = new Thread(() ->
+//                {
+//                    while (frame != null) {
+//                        try {
+//                            Mat rawImage = new Mat();
+//                            //Flip the camera if opening front camera
+//                            if (cameraPos.equals("front")) {
+//                                Mat inputImage = converter.convert(frame);
+//                                flip(inputImage, rawImage, 1);
+//                            } else {
+//                                rawImage = converter.convert(frame);
+//                            }
+//                            Mat resizeImage = new Mat();
+//                            resize(rawImage, resizeImage, new Size(width, height));
+//                            INDArray inputImage = loader.asMatrix(resizeImage);
+//                            scaler.transform(inputImage);
+////                              outputs = initializedModel.outputSingle(inputImage);
+//
+////                            vgg16Transfer.output(inputImage);
+//                            model.output(inputImage);
+//
+////                            org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) vgg16Transfer.getOutputLayer( 0 );
+////                            List<DetectedObject> objs = yout.getPredictedObjects( outputs, detectionThreshold );
+////                            YoloUtils.nms( objs, 0.4 );
+//
+////                            for (INDArray obj : model.output(inputImage)) {
+////                                double[] xy1;
+////                                xy1 = obj.toDoubleVector();
+////                                double[] xy2;
+////                                xy2 = obj.toDoubleVector();
+////                                String label = labels.getLabel(obj.getInt());
+////                                int x1 = (int) Math.round(w * xy1[0] / gridWidth);
+////                                int y1 = (int) Math.round(h * xy1[1] / gridHeight);
+////                                int x2 = (int) Math.round(w * xy2[0] / gridWidth);
+////                                int y2 = (int) Math.round(h * xy2[1] / gridHeight);
+////                                rectangle(rawImage, new Point(x1, y1), new Point(x2, y2), Scalar.RED, 2, 0, 0);
+////                                putText(rawImage, label, new Point(x1 + 2, y2 - 2), FONT_HERSHEY_DUPLEX, 1, Scalar.GREEN);
+////                            }
+//                            canvas.showImage(converter.convert(rawImage));
+//                        } catch (Exception e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }
+//                });
+//                thread.start();
+//            }
+//            KeyEvent t = canvas.waitKey(33);
+//            if ((t != null) && (t.getKeyCode() == KeyEvent.VK_Q)) {
+//                break;
+//            }
+//        }
+//        canvas.dispose();
+//    }
 }

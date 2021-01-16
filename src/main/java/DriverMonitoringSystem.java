@@ -43,7 +43,7 @@ public class DriverMonitoringSystem {
     private static final int width = 224;
     private static final int channels = 3;
     private static final int numClasses = 2;
-    private static int batchSize = 32;
+    private static int batchSize = 128;
 
     // Input split for train_set and test_set
     private static InputSplit trainSet, testSet;

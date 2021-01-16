@@ -1,0 +1,157 @@
+[33mcommit 8eb34ec96f0e06c37af3ae907575976b1400a56f[m[33m ([m[1;36mHEAD -> [m[1;32mvgg16[m[33m, [m[1;31morigin/vgg16[m[33m)[m
+Author: KingsleyNgoi <kingsleynkk@gmail.com>
+Date:   Fri Jan 15 21:33:02 2021 +0800
+
+    Modify to new code with added saved model, load pre-saved model and webcam inferencing
+
+[1mdiff --git a/pom.xml b/pom.xml[m
+[1mindex 97ace37..8c27c1a 100644[m
+[1m--- a/pom.xml[m
+[1m+++ b/pom.xml[m
+[36m@@ -1,47 +1,76 @@[m
+ <?xml version="1.0" encoding="UTF-8"?>[m
+ [m
+[31m-<!--[m
+[31m-  ~ /*[m
+[31m-  ~  * ******************************************************************************[m
+[31m-  ~  *  * Copyright (c) 2020 CertifAI Sdn. Bhd.[m
+[31m-  ~  *  *[m
+[31m-  ~  *  * This program and the accompanying materials are made available under the[m
+[31m-  ~  *  * terms of the Apache License, Version 2.0 which is available at[m
+[31m-  ~  *  * https://www.apache.org/licenses/LICENSE-2.0.[m
+[31m-  ~  *  *[m
+[31m-  ~  *  * Unless required by applicable law or agreed to in writing, software[m
+[31m-  ~  *  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT[m
+[31m-  ~  *  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the[m
+[31m-  ~  *  * License for the specific language governing permissions and limitations[m
+[31m-  ~  *  * under the License.[m
+[31m-  ~  *  *[m
+[31m-  ~  *  * SPDX-License-Identifier: Apache-2.0[m
+[31m-  ~  *  *****************************************************************************[m
+[31m-  ~  */[m
+[31m-  ~[m
+[31m-  -->[m
+[31m-[m
+[31m-[m
+ <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"[m
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">[m
+     <modelVersion>4.0.0</modelVersion>[m
+ [m
+[31m-    <groupId>ai.certifai</groupId>[m
+[31m-    <artifactId>my-first-dl4j-project</artifactId>[m
+[32m+[m[32m    <groupId>DriverMonitoringSystem</groupId>[m
+[32m+[m[32m    <artifactId>DMSDeepLearningProject</artifactId>[m
+     <version>1.0-SNAPSHOT</version>[m
+[32m+[m[32m    <packaging>pom</packaging>[m
+ [m
+[31m-    <name>my-first-dl4j-project</name>[m
+[31m-    <url>http://www.certifai.ai</url>[m
+[32m+[m[32m    <name>DMSDeepLearningProject</name>[m
+[32m+[m[32m    <!-- FIXME change it to the project's website -->[m
+[32m+[m[32m    <url>http://www.example.com</url>[m
+ [m
+     <properties>[m
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>[m
+[32m+[m[32m        <nd4j.backend>nd4j-native-platform</nd4j.backend>[m
+[32m+[m[32m<!--        <dl4j.cuda.backend>deeplearning4j-cuda-10.1</dl4j.cuda.backend>-->[m
+[32m+[m
+[32m+[m[32m        <java.version>1.8</java.version>[m
+         <dl4j.version>1.0.0-beta6</dl4j.version>[m
+         <nd4j.version>1.0.0-beta6</nd4j.version>[m
+[31m-        <java.version>1.8</java.version>[m
+[32m+[m[32m        <datavec.version>1.0.0-beta6</datavec.version>[m
+[32m+[m
+[32m+[m[32m        <javacv.version>1.5.2</javacv.version>[m
+[32m+[m[32m        <zip4j.version>2.2.6</zip4j.version>[m
+         <slf4j.version>2.0.0-alpha1</slf4j.version>[m
+[32m+[m[32m        <ffmpeg.version>3.2.1-1.3</ffmpeg.version>[m
+[32m+[m[32m        <httpclient.version>4.5.12</httpclient.version>[m
+[32m+[m
+[32m+[m[32m        <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>[m
+         <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>[m
+[32m+[m[32m        <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>[m
+[32m+[m[32m        <maven.minimum.version>3.3.1</maven.minimum.version>[m
+[32m+[m[32m        <javafx.version>2.2.3</javafx.version>[m
+     </properties>[m
+ [m
+[32m+[m[32m    <dependencyManagement>[m
+[32m+[m[32m        <dependencies>[m
+[32m+[m[32m            <dependency>[m
+[32m+[m[32m                <groupId>org.nd4j</groupId>[m
+[32m+[m[32m                <artifactId>nd4j-native-platform</artifactId>[m
+[32m+[m[32m                <version>${nd4j.version}</version>[m
+[32m+[m[32m            </dependency>[m
+[32m+[m[32m<!--            <dependency>-->[m
+[32m+[m[32m<!--                <groupId>org.nd4j</groupId>-->[m
+[32m+[m[32m<!--                <artifactId>nd4j-cuda-9.0-platform</artifactId>-->[m
+[32m+[m[32m<!--                <version>${nd4j.version}</version>-->[m
+[32m+[m[32m<!--            </dependency>-->[m
+[32m+[m[32m<!--            <dependency>-->[m
+[32m+[m[32m<!--                <groupId>org.nd4j</groupId>-->[m
+[32m+[m[32m<!--                <artifactId>nd4j-cuda-10.0-platform</artifactId>-->[m
+[32m+[m[32m<!--                <version>${nd4j.version}</version>-->[m
+[32m+[m[32m<!--            </dependency>-->[m
+[32m+[m[32m            <dependency>[m
+[32m+[m[32m                <groupId>org.nd4j</groupId>[m
+[32m+[m[32m                <artifactId>nd4j-cuda-10.1-platform</artifactId>[m
+[32m+[m[32m                <version>${nd4j.version}</version>[m
+[32m+[m[32m            </dependency>[m
+[32m+[m[32m<!--            <dependency>-->[m
+[32m+[m[32m<!--                <groupId>org.nd4j</groupId>-->[m
+[32m+[m[32m<!--                <artifactId>nd4j-cuda-10.2-platform</artifactId>-->[m
+[32m+[m[32m<!--                <version>${nd4j.version}</version>-->[m
+[32m+[m[32m<!--            </dependency>-->[m
+[32m+[m[32m<!--            <dependency>-->[m
+[32m+[m[32m<!--                <groupId>org.bytedeco</groupId>-->[m
+[32m+[m[32m<!--                <artifactId>cuda-platform-redist</artifactId>-->[m
+[32m+[m[32m<!--                <version>10.2-7.6-1.5.3</version>-->[m
+[32m+[m[32m<!--            </dependency>-->[m
+[32m+[m[32m        </dependencies>[m
+[32m+[m[32m    </dependencyManagement>[m
+[32m+[m
+     <dependencies>[m
+ [m
+         <!-- nd4j backend-->[m
+[36m@@ -51,6 +80,20 @@[m
+             <version>${nd4j.version}</version>[m
+         </dependency>[m
+ [m
+[32m+[m[32m        <!-- ND4J backend. You need one in every DL4J project. Normally define artifactId as either "nd4j-native-platform" or "nd4j-cuda-9.2-platform" -->[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>org.nd4j</groupId>[m
+[32m+[m[32m            <artifactId>${nd4j.backend}</artifactId>[m
+[32m+[m[32m            <version>${nd4j.version}</version>[m
+[32m+[m[32m        </dependency>[m
+[32m+[m
+[32m+[m[32m        <!--Uncomment to enable cudnn-->[m
+[32m+[m[32m<!--        <dependency>-->[m
+[32m+[m[32m<!--            <groupId>org.deeplearning4j</groupId>-->[m
+[32m+[m[32m<!--            <artifactId>${dl4j.cuda.backend}</artifactId>-->[m
+[32m+[m[32m<!--            <version>${dl4j.version}</version>-->[m
+[32m+[m[32m<!--        </dependency>-->[m
+[32m+[m
+         <!-- altenatively, use GPU /CUDA for training -->[m
+         <!-- to use this, disable nd4j-native-platform and use this -->[m
+         <!-- <dependency> -->[m
+[36m@@ -86,6 +129,27 @@[m
+             <version>${slf4j.version}</version>[m
+         </dependency>[m
+ [m
+[32m+[m[32m        <!-- https://mvnrepository.com/artifact/org.deeplearning4j/deeplearning4j-nn -->[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>org.deeplearning4j</groupId>[m
+[32m+[m[32m            <artifactId>deeplearning4j-nn</artifactId>[m
+[32m+[m[32m            <version>${dl4j.version}</version>[m
+[32m+[m[32m        </dependency>[m
+[32m+[m
+[32m+[m[32m        <!--Used for Unzipping files in some of the examples-->[m
+[32m+[m[32m        <dependency>[m
+[32m+[m[32m            <groupId>net.lingala.zip4j</groupId>[m
+[32m+[m[32m            <artifactId>zip4j</artifactId>[m
+[32m+[m[32m            <version>${zip4j.version}</version>[m
+[32m+[m[32m        </dependency>[m
+[32m+[m
+[32m+[m[32m        <!--    &lt;!&ndash; For running opencv and ffmpeg libraries &ndash;&gt;-->[m
+[32m+[m[32m            <dependency>[m
+[32m+[m[32m                <groupId>org.bytedeco</groupId>[m
+[32m+[m[32m                <
